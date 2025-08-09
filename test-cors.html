@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>CORS Test for Table Tennis Tournament API</h1>
+    
+    <div class="test-section">
+        <h3>Test 1: Health Check (GET)</h3>
+        <button onclick="testHealth()">Test Health Endpoint</button>
+        <div id="health-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: Preflight Request (OPTIONS)</h3>
+        <button onclick="testPreflight()">Test Preflight</button>
+        <div id="preflight-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 3: Registration (POST)</h3>
+        <button onclick="testRegistration()">Test Registration</button>
+        <div id="registration-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 4: CORS Headers Check</h3>
+        <button onclick="checkCORSHeaders()">Check CORS Headers</button>
+        <div id="cors-headers-result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://tt-server-red.vercel.app';
+        
+        async function testHealth() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/health`);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">✅ Health check successful!</div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <p><strong>Status:</strong> ${response.status}</p>
+                    <p><strong>CORS Origin:</strong> ${response.headers.get('access-control-allow-origin') || 'Not set'}</p>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Health check failed: ${error.message}</div>`;
+            }
+        }
+        
+        async function testPreflight() {
+            const resultDiv = document.getElementById('preflight-result');
+            resultDiv.innerHTML = 'Testing preflight...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/users/register`, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Access-Control-Request-Method': 'POST',
+                        'Access-Control-Request-Headers': 'Content-Type, Authorization'
+                    }
+                });
+                
+                resultDiv.innerHTML = `
+                    <div class="success">✅ Preflight successful!</div>
+                    <p><strong>Status:</strong> ${response.status}</p>
+                    <p><strong>Allow Origin:</strong> ${response.headers.get('access-control-allow-origin') || 'Not set'}</p>
+                    <p><strong>Allow Methods:</strong> ${response.headers.get('access-control-allow-methods') || 'Not set'}</p>
+                    <p><strong>Allow Headers:</strong> ${response.headers.get('access-control-allow-headers') || 'Not set'}</p>
+                    <p><strong>Allow Credentials:</strong> ${response.headers.get('access-control-allow-credentials') || 'Not set'}</p>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Preflight failed: ${error.message}</div>`;
+            }
+        }
+        
+        async function testRegistration() {
+            const resultDiv = document.getElementById('registration-result');
+            resultDiv.innerHTML = 'Testing registration...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/users/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        password: 'testpass123',
+                        firstName: 'Test',
+                        lastName: 'User',
+                        phone: '1234567890',
+                        address: 'Test Address',
+                        dateOfBirth: '1990-01-01',
+                        paymentMethod: 'bank'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">✅ Registration request sent!</div>
+                    <p><strong>Status:</strong> ${response.status}</p>
+                    <p><strong>Response:</strong></p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <p><strong>CORS Origin:</strong> ${response.headers.get('access-control-allow-origin') || 'Not set'}</p>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Registration failed: ${error.message}</div>`;
+            }
+        }
+        
+        async function checkCORSHeaders() {
+            const resultDiv = document.getElementById('cors-headers-result');
+            resultDiv.innerHTML = 'Checking CORS headers...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/health`);
+                
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers.get('access-control-allow-origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('access-control-allow-methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('access-control-allow-headers'),
+                    'Access-Control-Allow-Credentials': response.headers.get('access-control-allow-credentials')
+                };
+                
+                resultDiv.innerHTML = `
+                    <div class="success">✅ CORS headers check complete!</div>
+                    <p><strong>CORS Headers:</strong></p>
+                    <pre>${JSON.stringify(corsHeaders, null, 2)}</pre>
+                    <p><strong>All Headers:</strong></p>
+                    <pre>${JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ CORS headers check failed: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html> 
